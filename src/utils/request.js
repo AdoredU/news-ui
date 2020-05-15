@@ -1,30 +1,35 @@
-import fetch from 'dva/fetch';
-
-function parseJSON(response) {
-  return response.json();
-}
-
-function checkStatus(response) {
-  if (response.status >= 200 && response.status < 300) {
-    return response;
-  }
-
-  const error = new Error(response.statusText);
-  error.response = response;
-  throw error;
-}
-
-/**
- * Requests a URL, returning a promise.
- *
- * @param  {string} url       The URL we want to request
- * @param  {object} [options] The options we want to pass to "fetch"
- * @return {object}           An object containing either "data" or "err"
+/*
+ * 封装通用的工具函数发送ajax请求
  */
-export default function request(url, options) {
-  return fetch(url, options)
-    .then(checkStatus)
-    .then(parseJSON)
-    .then(data => ({ data }))
-    .catch(err => ({ err }));
+import axios from 'axios';
+import qs from 'qs';
+
+// 设置请求的服务器根路径
+axios.defaults.baseURL = "http://localhost:8080";
+
+// 封装get和post请求
+export default {
+  get(url, params = {}) {
+    return new Promise((resolve, reject) => {
+      axios.get(url,{params})
+        .then(response=>{
+          resolve(response.data);  // 处理请求成功的结果
+        })
+        .catch(err=>{
+          reject(err);  // 处理请求失败的错误信息
+        })
+    });
+  },
+  post(url, params = {}) {
+    return new Promise((resolve, reject)=>{
+      axios.post(url, qs.stringify(params))  // 使用qs避免后端接收不到参数
+        .then(response => {
+          resolve(response.data);
+        })
+        .catch(err=>{
+          reject(err);
+        });
+    })
+
+  }
 }
