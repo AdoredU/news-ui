@@ -1,5 +1,7 @@
 import React, {PureComponent, Fragment} from 'react';
 import {connect} from 'dva';
+import FileViewer from 'react-file-viewer';
+import {downloadFile} from '../../utils/connectUtil';
 import {Layout, Row, Col, Table, Button, Divider, Popconfirm} from 'antd';
 import NewsModel from '../../components/newsModel';
 import styles from './News.less';
@@ -7,6 +9,17 @@ import styles from './News.less';
 const {Header, Footer, Content} = Layout;
 
 class News extends PureComponent {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      filePath: ''
+    }
+  }
+
+  componentWillUnmount () {
+    console.log('componentWillUnmount ...')
+  }
 
   handleDelete = (id) => {
     this.props.dispatch({
@@ -59,15 +72,41 @@ class News extends PureComponent {
   handlePublishNews = () => {
     this.newsModel.showModal("发布新闻");
   };
+  
+  preview = () => {
+
+    let url = 'http://localhost:8080/fileController/download'
+
+    downloadFile(url, (path)=>{
+      console.log(path)
+      this.setState({
+        filePath: path
+      })
+    }, (err)=>{
+      console.log(err)
+    });
+
+    // this.setState({
+    //   filePath: 'report.docx'
+    // })
+  }
 
   editNews = (record) => {
     this.newsModel.showModal("编辑新闻", record, record.id);
   };
 
   render() {
+    const {filePath} = this.state
+    console.log(filePath)
     const {list, dispatch} = this.props;
     return (
       <Fragment>
+        <Button type='primary' onClick={()=>window.history.back()}>返回</Button>
+        <Button type='primary' onClick={this.preview}>预览</Button>
+        {filePath && <FileViewer
+          fileType='pdf'
+          filePath={filePath}
+        />}
         <Layout className={styles.news}>
           <Header className={styles.header}><h1>新闻发布系统</h1></Header>
           <Content className={styles.main}>
